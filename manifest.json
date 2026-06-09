@@ -1,16 +1,3 @@
 {
-  "items": [
-    {
-      "id": "gw7e8g",
-      "name": "验证测试页",
-      "description": "浏览器验证用的测试页面",
-      "category": "演示",
-      "filename": "gw7e8g.html",
-      "uploaded_at": "2026-06-09T16:43:26Z",
-      "tags": [
-        "test",
-        "验证"
-      ]
-    }
-  ]
+  "items": []
 }
