@@ -1,16 +1,3 @@
 {
-  "items": [
-    {
-      "id": "fte7fp",
-      "name": "测试页面v2",
-      "description": "更新后的描述",
-      "category": "实验",
-      "filename": "fte7fp.html",
-      "uploaded_at": "2026-06-09T16:40:21Z",
-      "tags": [
-        "test",
-        "demo"
-      ]
-    }
-  ]
+  "items": []
 }
