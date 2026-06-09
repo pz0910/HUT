@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HUT - HTML 托管展示平台</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --card-bg: #161b22;
+    --card-hover: #1c2333;
+    --text: #e6edf3;
+    --text-secondary: #8b949e;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --search-bg: #0d1117;
+    --tag-active: #1f6feb;
+    --tag-inactive-bg: #21262d;
+    --tag-inactive-text: #8b949e;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .header h1 span.icon { margin-right: 6px; }
+  .header p {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  /* Search */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .search-wrap input {
+    width: 100%;
+    padding: 12px 42px 12px 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input::placeholder { color: var(--text-secondary); }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap .clear-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    display: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  .search-wrap .clear-btn:hover { color: var(--text); background: var(--tag-inactive-bg); }
+  .search-wrap .clear-btn.show { display: block; }
+
+  /* Category tags */
+  .tags {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .tags::-webkit-scrollbar { display: none; }
+  .tag-btn {
+    flex-shrink: 0;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--tag-inactive-bg);
+    color: var(--tag-inactive-text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tag-btn:hover { color: var(--text); border-color: var(--text-secondary); }
+  .tag-btn.active {
+    background: var(--tag-active);
+    color: #fff;
+    border-color: var(--tag-active);
+  }
+
+  /* Cards grid */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: var(--text-secondary);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .card-desc {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-time {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-top: 12px;
+    opacity: 0.7;
+  }
+
+  /* Category badge colors */
+  .cat-工具    { background: #1f6feb22; color: #58a6ff; }
+  .cat-可视化  { background: #23883422; color: #3fb950; }
+  .cat-演示    { background: #9e6a0322; color: #d29922; }
+  .cat-实验    { background: #8b5cf622; color: #a78bfa; }
+  .cat-论文    { background: #da363322; color: #f87171; }
+  .cat-其他    { background: #6e768122; color: #8b949e; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-secondary);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state p { font-size: 15px; }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+  }
+
+  /* Error */
+  .error-state {
+    text-align: center;
+    padding: 40px;
+    color: #f87171;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .container { padding: 16px 12px 32px; }
+    .header h1 { font-size: 22px; }
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1><span class="icon">📦</span>HUT</h1>
+    <p>HTML 托管展示平台 — 个人 HTML 作品集中管理</p>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="搜索 HTML 页面..." autocomplete="off">
+    <button class="clear-btn" id="clearBtn" title="清除搜索">✕</button>
+  </div>
+
+  <div class="tags" id="tagsBar">
+    <!-- JS 动态生成 -->
+  </div>
+
+  <div id="content">
+    <div class="loading">加载中...</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const CATEGORIES = ['全部', '工具', '可视化', '演示', '实验', '论文', '其他'];
+  const CAT_BADGE_MAP = {
+    '工具': 'cat-工具',
+    '可视化': 'cat-可视化',
+    '演示': 'cat-演示',
+    '实验': 'cat-实验',
+    '论文': 'cat-论文',
+    '其他': 'cat-其他'
+  };
+
+  let allItems = [];
+  let activeCategory = '全部';
+  let searchQuery = '';
+
+  const searchInput = document.getElementById('searchInput');
+  const clearBtn = document.getElementById('clearBtn');
+  const tagsBar = document.getElementById('tagsBar');
+  const content = document.getElementById('content');
+
+  // 初始化分类标签
+  CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'tag-btn' + (cat === '全部' ? ' active' : '');
+    btn.textContent = cat;
+    btn.addEventListener('click', () => {
+      activeCategory = cat;
+      document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+    tagsBar.appendChild(btn);
+  });
+
+  // 搜索事件
+  searchInput.addEventListener('input', () => {
+    searchQuery = searchInput.value.trim().toLowerCase();
+    clearBtn.classList.toggle('show', searchQuery.length > 0);
+    render();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    searchQuery = '';
+    clearBtn.classList.remove('show');
+    render();
+    searchInput.focus();
+  });
+
+  // 相对时间
+  function relativeTime(isoStr) {
+    if (!isoStr) return '';
+    const now = Date.now();
+    const then = new Date(isoStr).getTime();
+    const diff = now - then;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return '刚刚';
+    if (mins < 60) return mins + ' 分钟前';
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + ' 小时前';
+    const days = Math.floor(hours / 24);
+    if (days < 30) return days + ' 天前';
+    const months = Math.floor(days / 30);
+    if (months < 12) return months + ' 个月前';
+    return Math.floor(months / 12) + ' 年前';
+  }
+
+  // 过滤
+  function getFiltered() {
+    return allItems.filter(item => {
+      const catMatch = activeCategory === '全部' || item.category === activeCategory;
+      if (!catMatch) return false;
+      if (!searchQuery) return true;
+      const inName = (item.name || '').toLowerCase().includes(searchQuery);
+      const inDesc = (item.description || '').toLowerCase().includes(searchQuery);
+      const inTags = (item.tags || []).some(t => t.toLowerCase().includes(searchQuery));
+      return inName || inDesc || inTags;
+    });
+  }
+
+  // 渲染
+  function render() {
+    const filtered = getFiltered();
+
+    if (filtered.length === 0) {
+      if (allItems.length === 0) {
+        content.innerHTML = '<div class="empty-state"><div class="icon">📂</div><p>还没有上传任何页面，用 CLI 工具上传第一个吧！</p></div>';
+      } else {
+        content.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>没有找到匹配的内容</p></div>';
+      }
+      return;
+    }
+
+    // 按 uploaded_at 倒序
+    filtered.sort((a, b) => {
+      const ta = a.uploaded_at ? new Date(a.uploaded_at).getTime() : 0;
+      const tb = b.uploaded_at ? new Date(b.uploaded_at).getTime() : 0;
+      return tb - ta;
+    });
+
+    const html = '<div class="cards">' + filtered.map(item => {
+      const badgeClass = CAT_BADGE_MAP[item.category] || 'cat-其他';
+      const timeStr = relativeTime(item.uploaded_at);
+      const href = 'apps/' + encodeURIComponent(item.filename);
+      return '<a class="card" href="' + href + '">'
+        + '<div class="card-title">'
+        + '<span>' + escapeHtml(item.name) + '</span>'
+        + '<span class="badge ' + badgeClass + '">' + escapeHtml(item.category) + '</span>'
+        + '</div>'
+        + '<div class="card-desc">' + escapeHtml(item.description) + '</div>'
+        + '<div class="card-time">' + escapeHtml(timeStr) + '</div>'
+        + '</a>';
+    }).join('') + '</div>';
+
+    content.innerHTML = html;
+  }
+
+  function escapeHtml(s) {
+    if (!s) return '';
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // 加载数据
+  fetch('manifest.json')
+    .then(r => {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(data => {
+      allItems = Array.isArray(data.items) ? data.items : [];
+      searchInput.focus();
+      render();
+    })
+    .catch(() => {
+      content.innerHTML = '<div class="error-state"><p>⚠️ 数据加载失败</p><p style="font-size:13px;margin-top:8px;color:#8b949e;">请检查 manifest.json 是否存在且格式正确</p></div>';
+    });
+})();
+</script>
+</body>
+</html>

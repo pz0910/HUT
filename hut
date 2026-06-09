@@ -1,0 +1,341 @@
+#!/usr/bin/env bash
+# HUT - HTML 托管展示平台 CLI 工具
+# 用法: hut <command> [options]
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MANIFEST="$SCRIPT_DIR/manifest.json"
+APPS_DIR="$SCRIPT_DIR/apps"
+
+# 确保 apps 目录和 manifest.json 存在
+mkdir -p "$APPS_DIR"
+[ -f "$MANIFEST" ] || echo '{"items":[]}' > "$MANIFEST"
+
+# 生成 6 位随机 ID（小写字母+数字）
+gen_id() {
+  cat /dev/urandom | tr -dc 'a-z0-9' | head -c 6
+}
+
+# 检查 jq 是否可用
+check_jq() {
+  if ! command -v jq &>/dev/null; then
+    echo "❌ 错误: 需要安装 jq，请运行: brew install jq 或 apt install jq"
+    exit 1
+  fi
+}
+
+# 自动 git commit
+auto_commit() {
+  local msg="$1"
+  cd "$SCRIPT_DIR"
+  git add manifest.json apps/ 2>/dev/null || true
+  if git diff --cached --quiet 2>/dev/null; then
+    return 0
+  fi
+  git commit -m "$msg" --quiet 2>/dev/null || true
+}
+
+# === upload ===
+cmd_upload() {
+  local file="" name="" desc="" cat="" tags=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --name)  name="$2"; shift 2 ;;
+      --desc)  desc="$2"; shift 2 ;;
+      --cat)   cat="$2";  shift 2 ;;
+      --tags)  tags="$2"; shift 2 ;;
+      -*)      echo "❌ 未知选项: $1"; exit 1 ;;
+      *)       file="$1"; shift ;;
+    esac
+  done
+
+  # 校验必填参数
+  if [ -z "$file" ]; then
+    echo "❌ 用法: hut upload <file.html> --name \"名称\" --desc \"描述\" --cat \"分类\" [--tags \"t1,t2\"]"
+    exit 1
+  fi
+  if [ -z "$name" ] || [ -z "$desc" ] || [ -z "$cat" ]; then
+    echo "❌ 缺少必填参数: --name, --desc, --cat 均为必填"
+    echo "用法: hut upload <file.html> --name \"名称\" --desc \"描述\" --cat \"分类\" [--tags \"t1,t2\"]"
+    exit 1
+  fi
+
+  # 校验文件
+  if [ ! -f "$file" ]; then
+    echo "❌ 文件不存在: $file"
+    exit 1
+  fi
+  if [[ "$file" != *.html ]]; then
+    echo "❌ 仅支持 .html 文件"
+    exit 1
+  fi
+
+  check_jq
+
+  local id
+  # 确保 ID 唯一
+  while true; do
+    id=$(gen_id)
+    [ ! -f "$APPS_DIR/$id.html" ] && break
+  done
+
+  # 复制文件
+  cp "$file" "$APPS_DIR/$id.html"
+
+  # 解析 tags
+  local tags_json="[]"
+  if [ -n "$tags" ]; then
+    tags_json=$(echo "$tags" | tr ',' '\n' | jq -R . | jq -s .)
+  fi
+
+  # 写入 manifest.json
+  local now
+  now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  local tmp
+  tmp=$(mktemp)
+  jq --arg id "$id" --arg name "$name" --arg desc "$desc" --arg cat "$cat" \
+     --arg filename "$id.html" --arg uploaded_at "$now" --argjson tags "$tags_json" \
+     '.items += [{"id":$id,"name":$name,"description":$desc,"category":$cat,"filename":$filename,"uploaded_at":$uploaded_at,"tags":$tags}]' \
+     "$MANIFEST" > "$tmp" && mv "$tmp" "$MANIFEST"
+
+  auto_commit "feat: 添加 $name"
+
+  echo "✅ 已上传: $name (id: $id)"
+  echo "   运行 'hut push' 推送到 GitHub Pages"
+}
+
+# === list ===
+cmd_list() {
+  local cat_filter="" search=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --cat)    cat_filter="$2"; shift 2 ;;
+      --search) search="$2";     shift 2 ;;
+      *)        shift ;;
+    esac
+  done
+
+  check_jq
+
+  local count
+  count=$(jq '.items | length' "$MANIFEST")
+  if [ "$count" -eq 0 ]; then
+    echo "暂无已上传的 HTML 页面"
+    return 0
+  fi
+
+  local query='.items'
+  if [ -n "$cat_filter" ]; then
+    query="$query | map(select(.category == \"$cat_filter\"))"
+  fi
+  if [ -n "$search" ]; then
+    query="$query | map(select(.name | test(\"$search\";\"i\")) + select(.description | test(\"$search\";\"i\")))"
+  fi
+  query="$query | sort_by(.uploaded_at) | reverse | .[] | [.id, .name, .category, .uploaded_at] | @tsv"
+
+  printf "%-10s %-20s %-10s %s\n" "ID" "名称" "分类" "上传时间"
+  printf "%-10s %-20s %-10s %s\n" "──" "────" "────" "────────"
+  jq -r "$query" "$MANIFEST" | while IFS=$'\t' read -r id name cat time; do
+    printf "%-10s %-20s %-10s %s\n" "$id" "$name" "$cat" "$time"
+  done
+}
+
+# === delete ===
+cmd_delete() {
+  if [ -z "${1:-}" ]; then
+    echo "❌ 用法: hut delete <id>"
+    exit 1
+  fi
+
+  local id="$1"
+  check_jq
+
+  local name
+  name=$(jq -r --arg id "$id" '.items[] | select(.id == $id) | .name // empty' "$MANIFEST")
+  if [ -z "$name" ]; then
+    echo "❌ 未找到 ID: $id"
+    exit 1
+  fi
+
+  # 删除文件
+  rm -f "$APPS_DIR/$id.html"
+
+  # 从 manifest 删除
+  local tmp
+  tmp=$(mktemp)
+  jq --arg id "$id" '.items |= map(select(.id != $id))' "$MANIFEST" > "$tmp" && mv "$tmp" "$MANIFEST"
+
+  auto_commit "feat: 删除 $name"
+
+  echo "✅ 已删除: $name"
+}
+
+# === update ===
+cmd_update() {
+  if [ -z "${1:-}" ]; then
+    echo "❌ 用法: hut update <id> [--name \"名称\"] [--desc \"描述\"] [--cat \"分类\"] [--tags \"t1,t2\"]"
+    exit 1
+  fi
+
+  local id="$1"; shift
+  local name="" desc="" cat="" tags=""
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --name)  name="$2"; shift 2 ;;
+      --desc)  desc="$2"; shift 2 ;;
+      --cat)   cat="$2";  shift 2 ;;
+      --tags)  tags="$2"; shift 2 ;;
+      *)       shift ;;
+    esac
+  done
+
+  check_jq
+
+  # 检查 ID 存在
+  local exists
+  exists=$(jq -r --arg id "$id" '[.items[] | select(.id == $id)] | length' "$MANIFEST")
+  if [ "$exists" -eq 0 ]; then
+    echo "❌ 未找到 ID: $id"
+    exit 1
+  fi
+
+  local tmp
+  tmp=$(mktemp)
+  local jq_expr='.items |= map(if .id == "'"$id"'" then '
+
+  if [ -n "$name" ]; then
+    jq_expr+='.name = "'"$name"'" | '
+  fi
+  if [ -n "$desc" ]; then
+    jq_expr+='.description = "'"$desc"'" | '
+  fi
+  if [ -n "$cat" ]; then
+    jq_expr+='.category = "'"$cat"'" | '
+  fi
+  if [ -n "$tags" ]; then
+    local tags_json
+    tags_json=$(echo "$tags" | tr ',' '\n' | jq -R . | jq -s .)
+    jq_expr+='.tags = '"$tags_json"' | '
+  fi
+
+  # 去掉末尾的 " | "
+  jq_expr="${jq_expr% | }"
+  jq_expr+=' else . end)'
+
+  jq "$jq_expr" "$MANIFEST" > "$tmp" && mv "$tmp" "$MANIFEST"
+
+  auto_commit "feat: 更新 $id 元数据"
+
+  echo "✅ 已更新: $id"
+}
+
+# === replace ===
+cmd_replace() {
+  if [ -z "${1:-}" ] || [ -z "${2:-}" ]; then
+    echo "❌ 用法: hut replace <id> <file.html>"
+    exit 1
+  fi
+
+  local id="$1"
+  local file="$2"
+
+  if [ ! -f "$file" ]; then
+    echo "❌ 文件不存在: $file"
+    exit 1
+  fi
+
+  check_jq
+
+  local exists
+  exists=$(jq -r --arg id "$id" '[.items[] | select(.id == $id)] | length' "$MANIFEST")
+  if [ "$exists" -eq 0 ]; then
+    echo "❌ 未找到 ID: $id"
+    exit 1
+  fi
+
+  cp "$file" "$APPS_DIR/$id.html"
+
+  auto_commit "feat: 替换 $id 文件"
+
+  echo "✅ 已替换: $id"
+}
+
+# === push ===
+cmd_push() {
+  cd "$SCRIPT_DIR"
+  if ! git remote -v | grep -q 'origin'; then
+    echo "❌ 未配置远程仓库 (origin)"
+    exit 1
+  fi
+  git push origin "$(git branch --show-current)"
+  echo "✅ 已推送到 GitHub Pages"
+}
+
+# === help ===
+cmd_help() {
+  if [ -n "${1:-}" ]; then
+    case "$1" in
+      upload)
+        echo "用法: hut upload <file.html> --name \"名称\" --desc \"描述\" --cat \"分类\" [--tags \"t1,t2\"]"
+        echo ""
+        echo "参数:"
+        echo "  <file.html>    要上传的 HTML 文件路径"
+        echo "  --name         页面显示名称（必填）"
+        echo "  --desc         简要描述，≤100字（必填）"
+        echo "  --cat          分类：工具/可视化/演示/实验/论文/其他（必填）"
+        echo "  --tags         逗号分隔的标签（可选）"
+        ;;
+      list)
+        echo "用法: hut list [--cat 分类] [--search 关键词]"
+        ;;
+      delete)
+        echo "用法: hut delete <id>"
+        ;;
+      update)
+        echo "用法: hut update <id> [--name \"名称\"] [--desc \"描述\"] [--cat \"分类\"] [--tags \"t1,t2\"]"
+        ;;
+      replace)
+        echo "用法: hut replace <id> <file.html>"
+        ;;
+      push)
+        echo "用法: hut push"
+        echo "执行 git push 到远程仓库，触发 GitHub Pages 更新"
+        ;;
+      *)
+        echo "未知命令: $1"
+        ;;
+    esac
+    return 0
+  fi
+
+  echo "HUT - HTML 托管展示平台 CLI 工具"
+  echo ""
+  echo "用法: hut <命令> [选项]"
+  echo ""
+  echo "命令:"
+  echo "  upload <file>  上传新 HTML 页面"
+  echo "  list           列出已上传的 HTML"
+  echo "  delete <id>    删除指定 HTML"
+  echo "  update <id>    更新元数据"
+  echo "  replace <id>   替换 HTML 文件"
+  echo "  push           推送到 GitHub Pages"
+  echo "  help [cmd]     显示帮助信息"
+  echo ""
+  echo "运行 'hut help <command>' 查看命令详情"
+}
+
+# === main ===
+case "${1:-help}" in
+  upload)  shift; cmd_upload "$@" ;;
+  list)    shift; cmd_list "$@" ;;
+  delete)  shift; cmd_delete "$@" ;;
+  update)  shift; cmd_update "$@" ;;
+  replace) shift; cmd_replace "$@" ;;
+  push)    shift; cmd_push "$@" ;;
+  help)    shift; cmd_help "$@" ;;
+  *)       echo "❌ 未知命令: $1"; cmd_help; exit 1 ;;
+esac
