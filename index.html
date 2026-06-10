@@ -19,6 +19,18 @@
     --tag-active: #1f6feb;
     --tag-inactive-bg: #21262d;
     --tag-inactive-text: #8b949e;
+
+    /* 分类主色 */
+    --cat-tools: #58a6ff;
+    --cat-viz: #3fb950;
+    --cat-demo: #d29922;
+    --cat-experiment: #a78bfa;
+    --cat-paper: #f87171;
+    --cat-other: #8b949e;
+
+    /* 动画变量 */
+    --anim-duration: 0.4s;
+    --anim-stagger: 50ms;
   }
 
   body {
@@ -29,32 +41,67 @@
     min-height: 100vh;
   }
 
-  .container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 24px 16px 48px;
-  }
-
-  /* Header */
-  .header {
+  /* ========== Hero 区域 ========== */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: 48px 24px 36px;
     text-align: center;
-    margin-bottom: 28px;
   }
-  .header h1 {
-    font-size: 28px;
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(135deg, #1f6feb, #238636, #8b5cf6, #1f6feb);
+    background-size: 300% 300%;
+    animation: meshMove 8s ease infinite alternate;
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: rgba(13,17,23,0.85);
+  }
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-size: 32px;
     font-weight: 700;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    animation: titleGlow 2s ease-in-out infinite;
   }
-  .header h1 span.icon { margin-right: 6px; }
-  .header p {
+  .hero h1 .icon { margin-right: 8px; }
+  .hero .subtitle {
     color: var(--text-secondary);
     font-size: 14px;
+    animation: fadeInUp 0.5s ease both;
+    animation-delay: 0.2s;
   }
 
-  /* Search */
+  @keyframes meshMove {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+  @keyframes titleGlow {
+    0%, 100% { text-shadow: 0 0 8px rgba(88,166,255,0.3); }
+    50%      { text-shadow: 0 0 20px rgba(88,166,255,0.6), 0 0 40px rgba(139,92,246,0.3); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ========== 搜索框 ========== */
   .search-wrap {
     position: relative;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
   }
   .search-wrap input {
     width: 100%;
@@ -65,10 +112,13 @@
     color: var(--text);
     font-size: 15px;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.3s;
   }
   .search-wrap input::placeholder { color: var(--text-secondary); }
-  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(88,166,255,0.15), 0 0 16px rgba(88,166,255,0.1);
+  }
   .search-wrap .clear-btn {
     position: absolute;
     right: 10px;
@@ -86,7 +136,16 @@
   .search-wrap .clear-btn:hover { color: var(--text); background: var(--tag-inactive-bg); }
   .search-wrap .clear-btn.show { display: block; }
 
-  /* Category tags */
+  /* ========== 统计信息栏 ========== */
+  .stats-bar {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ========== 分类标签 ========== */
   .tags {
     display: flex;
     gap: 8px;
@@ -95,6 +154,7 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding-bottom: 4px;
+    justify-content: center;
   }
   .tags::-webkit-scrollbar { display: none; }
   .tag-btn {
@@ -109,14 +169,25 @@
     transition: all 0.15s;
     white-space: nowrap;
   }
-  .tag-btn:hover { color: var(--text); border-color: var(--text-secondary); }
+  .tag-btn:hover {
+    color: var(--text);
+    border-color: var(--text-secondary);
+    transform: scale(1.05);
+  }
   .tag-btn.active {
     background: var(--tag-active);
     color: #fff;
     border-color: var(--tag-active);
   }
 
-  /* Cards grid */
+  /* ========== 主容器 ========== */
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 16px 48px;
+  }
+
+  /* ========== 卡片网格 ========== */
   .cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -127,18 +198,121 @@
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 20px;
     cursor: pointer;
-    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    transition: transform 0.15s, border-color 0.3s, box-shadow 0.15s;
     text-decoration: none;
     color: inherit;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    opacity: 0;
+    animation: cardFadeIn var(--anim-duration) ease-out forwards;
   }
   .card:hover {
     transform: translateY(-2px);
-    border-color: var(--text-secondary);
     box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  /* hover 边框变色由 JS 内联 style 控制 */
+
+  /* ========== 卡片缩略图 ========== */
+  .card-thumb {
+    height: 140px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+  }
+  .card:hover .card-thumb {
+    transform: scale(1.05);
+  }
+  .card-thumb-icon {
+    font-size: 48px;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+  }
+  /* 底部暗色渐变 */
+  .card-thumb::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60%;
+    background: linear-gradient(transparent, rgba(0,0,0,0.6));
+    z-index: 1;
+  }
+
+  /* 分类缩略图配色 */
+  .thumb-工具    { background: linear-gradient(135deg, #1f6feb, #388bfd); }
+  .thumb-可视化  { background: linear-gradient(135deg, #238636, #3fb950); }
+  .thumb-演示    { background: linear-gradient(135deg, #d29922, #e3b341); }
+  .thumb-实验    { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+  .thumb-论文    { background: linear-gradient(135deg, #da3633, #f87171); }
+  .thumb-其他    { background: linear-gradient(135deg, #6e7681, #8b949e); }
+
+  /* 装饰图案 */
+  .card-thumb-pattern {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    opacity: 0.15;
+  }
+  /* 工具：网格点阵 */
+  .pattern-工具 {
+    background-image: radial-gradient(circle, #fff 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+  /* 可视化：波浪线 */
+  .pattern-可视化 {
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent,
+      transparent 8px,
+      rgba(255,255,255,0.3) 8px,
+      rgba(255,255,255,0.3) 9px
+    );
+  }
+  /* 演示：聚光灯圆 */
+  .pattern-演示 {
+    background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.25) 0%, transparent 50%),
+                radial-gradient(circle at 70% 60%, rgba(255,255,255,0.15) 0%, transparent 40%);
+  }
+  /* 实验：分子结构点 */
+  .pattern-实验 {
+    background-image: radial-gradient(circle, rgba(255,255,255,0.4) 2px, transparent 2px);
+    background-size: 24px 24px;
+    background-position: 6px 6px;
+  }
+  /* 论文：文档堆叠线 */
+  .pattern-论文 {
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 10px,
+      rgba(255,255,255,0.2) 10px,
+      rgba(255,255,255,0.2) 11px
+    );
+  }
+  /* 其他：方块阵列 */
+  .pattern-其他 {
+    background-image:
+      linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+
+  /* ========== 卡片内容区 ========== */
+  .card-body {
+    padding: 16px 20px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
   .card-title {
     font-size: 16px;
@@ -147,6 +321,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    transition: color 0.3s;
   }
   .card-title .badge {
     font-size: 11px;
@@ -172,7 +347,7 @@
     opacity: 0.7;
   }
 
-  /* Category badge colors */
+  /* ========== 分类 badge 颜色 ========== */
   .cat-工具    { background: #1f6feb22; color: #58a6ff; }
   .cat-可视化  { background: #23883422; color: #3fb950; }
   .cat-演示    { background: #9e6a0322; color: #d29922; }
@@ -180,54 +355,90 @@
   .cat-论文    { background: #da363322; color: #f87171; }
   .cat-其他    { background: #6e768122; color: #8b949e; }
 
-  /* Empty state */
+  /* ========== 入场动画 ========== */
+  @keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ========== 空状态 ========== */
   .empty-state {
     text-align: center;
     padding: 60px 20px;
     color: var(--text-secondary);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(31,111,235,0.05), rgba(139,92,246,0.05));
+    border: 1px dashed var(--border);
   }
-  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
-  .empty-state p { font-size: 15px; }
+  .empty-state .icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: breathe 3s ease-in-out infinite;
+  }
+  .empty-state p { font-size: 15px; margin-bottom: 8px; }
+  .empty-state .hint {
+    font-size: 13px;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    font-family: "Cascadia Code", "Fira Code", monospace;
+    background: var(--card-bg);
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 6px;
+    margin-top: 8px;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50%      { transform: scale(1.08); opacity: 1; }
+  }
 
-  /* Loading */
+  /* ========== 加载 / 错误 ========== */
   .loading {
     text-align: center;
     padding: 40px;
     color: var(--text-secondary);
   }
-
-  /* Error */
   .error-state {
     text-align: center;
     padding: 40px;
     color: #f87171;
   }
 
-  /* Responsive */
+  /* ========== 响应式 ========== */
   @media (max-width: 640px) {
-    .container { padding: 16px 12px 32px; }
-    .header h1 { font-size: 22px; }
+    .hero { padding: 32px 16px 24px; }
+    .hero h1 { font-size: 24px; }
+    .container { padding: 0 12px 32px; }
     .cards { grid-template-columns: 1fr; }
+    .tags { justify-content: flex-start; }
   }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="header">
+<!-- Hero 区域 -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
     <h1><span class="icon">📦</span>HUT</h1>
-    <p>HTML 托管展示平台 — 个人 HTML 作品集中管理</p>
-  </div>
+    <p class="subtitle">HTML 托管展示平台 — 个人 HTML 作品集中管理</p>
 
-  <div class="search-wrap">
-    <input type="text" id="searchInput" placeholder="搜索 HTML 页面..." autocomplete="off">
-    <button class="clear-btn" id="clearBtn" title="清除搜索">✕</button>
-  </div>
+    <div class="search-wrap" style="margin-top:20px;">
+      <input type="text" id="searchInput" placeholder="搜索 HTML 页面..." autocomplete="off">
+      <button class="clear-btn" id="clearBtn" title="清除搜索">✕</button>
+    </div>
 
-  <div class="tags" id="tagsBar">
-    <!-- JS 动态生成 -->
-  </div>
+    <div class="stats-bar" id="statsBar"></div>
 
+    <div class="tags" id="tagsBar">
+      <!-- JS 动态生成 -->
+    </div>
+  </div>
+</div>
+
+<!-- 卡片内容 -->
+<div class="container">
   <div id="content">
     <div class="loading">加载中...</div>
   </div>
@@ -238,6 +449,7 @@
   'use strict';
 
   const CATEGORIES = ['全部', '工具', '可视化', '演示', '实验', '论文', '其他'];
+
   const CAT_BADGE_MAP = {
     '工具': 'cat-工具',
     '可视化': 'cat-可视化',
@@ -247,6 +459,16 @@
     '其他': 'cat-其他'
   };
 
+  // 缩略图配置：图标 + 渐变 class + 装饰 class + hover 边框色
+  const THUMB_MAP = {
+    '工具':   { icon: '🔧', thumb: 'thumb-工具',   pattern: 'pattern-工具',   hoverColor: '#58a6ff', titleColor: '#58a6ff' },
+    '可视化': { icon: '📊', thumb: 'thumb-可视化', pattern: 'pattern-可视化', hoverColor: '#3fb950', titleColor: '#3fb950' },
+    '演示':   { icon: '🎬', thumb: 'thumb-演示',   pattern: 'pattern-演示',   hoverColor: '#d29922', titleColor: '#d29922' },
+    '实验':   { icon: '🧪', thumb: 'thumb-实验',   pattern: 'pattern-实验',   hoverColor: '#a78bfa', titleColor: '#a78bfa' },
+    '论文':   { icon: '📄', thumb: 'thumb-论文',   pattern: 'pattern-论文',   hoverColor: '#f87171', titleColor: '#f87171' },
+    '其他':   { icon: '📁', thumb: 'thumb-其他',   pattern: 'pattern-其他',   hoverColor: '#8b949e', titleColor: '#8b949e' }
+  };
+
   let allItems = [];
   let activeCategory = '全部';
   let searchQuery = '';
@@ -254,6 +476,7 @@
   const searchInput = document.getElementById('searchInput');
   const clearBtn = document.getElementById('clearBtn');
   const tagsBar = document.getElementById('tagsBar');
+  const statsBar = document.getElementById('statsBar');
   const content = document.getElementById('content');
 
   // 初始化分类标签
@@ -316,15 +539,43 @@
     });
   }
 
+  // 更新统计栏
+  function updateStats(filtered) {
+    const total = allItems.length;
+    const catCount = new Set(allItems.map(i => i.category)).size;
+    // 找最近更新时间
+    let latest = '';
+    if (total > 0) {
+      const sorted = [...allItems].sort((a, b) => {
+        return (new Date(b.uploaded_at || 0).getTime()) - (new Date(a.uploaded_at || 0).getTime());
+      });
+      latest = relativeTime(sorted[0].uploaded_at);
+    }
+    const parts = ['共 ' + filtered.length + ' 个作品'];
+    if (activeCategory === '全部') parts.push(catCount + ' 个分类');
+    if (latest) parts.push('最近更新 ' + latest);
+    statsBar.textContent = parts.join('  ·  ');
+  }
+
   // 渲染
   function render() {
     const filtered = getFiltered();
+    updateStats(filtered);
 
     if (filtered.length === 0) {
       if (allItems.length === 0) {
-        content.innerHTML = '<div class="empty-state"><div class="icon">📂</div><p>还没有上传任何页面，用 CLI 工具上传第一个吧！</p></div>';
+        content.innerHTML = '<div class="empty-state">'
+          + '<div class="icon">📂</div>'
+          + '<p>还没有上传任何页面</p>'
+          + '<p style="font-size:13px;">用 CLI 工具上传第一个吧！</p>'
+          + '<div class="hint">hut upload your-page.html --category 工具</div>'
+          + '</div>';
       } else {
-        content.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>没有找到匹配的内容</p></div>';
+        content.innerHTML = '<div class="empty-state">'
+          + '<div class="icon">🔍</div>'
+          + '<p>没有找到匹配的内容</p>'
+          + '<p style="font-size:13px;">试试其他关键词？</p>'
+          + '</div>';
       }
       return;
     }
@@ -336,17 +587,31 @@
       return tb - ta;
     });
 
-    const html = '<div class="cards">' + filtered.map(item => {
+    const html = '<div class="cards">' + filtered.map((item, idx) => {
       const badgeClass = CAT_BADGE_MAP[item.category] || 'cat-其他';
+      const thumbCfg = THUMB_MAP[item.category] || THUMB_MAP['其他'];
       const timeStr = relativeTime(item.uploaded_at);
       const href = 'apps/' + encodeURIComponent(item.filename);
-      return '<a class="card" href="' + href + '">'
+      const staggerDelay = Math.min(idx, 19) * 50; // 最多20张
+      return '<a class="card" href="' + href + '"'
+        + ' style="animation-delay:' + staggerDelay + 'ms;'
+        + ' --hover-color:' + thumbCfg.hoverColor + ';'
+        + ' --title-color:' + thumbCfg.titleColor + ';"'
+        + ' onmouseenter="this.style.borderColor=this.style.getPropertyValue(\'--hover-color\');this.querySelector(\'.card-title\').style.color=this.style.getPropertyValue(\'--title-color\');"'
+        + ' onmouseleave="this.style.borderColor=\'\';this.querySelector(\'.card-title\').style.color=\'\';"'
+        + '>'
+        + '<div class="card-thumb ' + thumbCfg.thumb + '">'
+        + '<div class="card-thumb-pattern ' + thumbCfg.pattern + '"></div>'
+        + '<span class="card-thumb-icon">' + thumbCfg.icon + '</span>'
+        + '</div>'
+        + '<div class="card-body">'
         + '<div class="card-title">'
         + '<span>' + escapeHtml(item.name) + '</span>'
         + '<span class="badge ' + badgeClass + '">' + escapeHtml(item.category) + '</span>'
         + '</div>'
         + '<div class="card-desc">' + escapeHtml(item.description) + '</div>'
         + '<div class="card-time">' + escapeHtml(timeStr) + '</div>'
+        + '</div>'
         + '</a>';
     }).join('') + '</div>';
 
