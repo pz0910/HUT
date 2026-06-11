@@ -226,3 +226,10 @@
 | 8 | 暗色主题一致，无刺眼白色区域 |
 | 9 | 移动端布局正常 |
 | 10 | 无外部资源依赖（图片/CDN） |
+
+## 封面图规范
+
+- manifest.json 中 `"image"` 字段为可选，使用 Unsplash 直链格式
+- **选图规则：每篇文章封面图必须包含美女元素**，搜索关键词：`woman + 文章主题`
+- Unsplash 直链格式：`https://images.unsplash.com/photo-XXXXX?w=800&h=450&fit=crop`
+- 有 image 字段时显示图片，无 image 字段时 fallback 到 CSS 默认图案+emoji 图标
