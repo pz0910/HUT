@@ -611,9 +611,8 @@
         + '<div class="card-thumb ' + thumbCfg.thumb + '">'
         + (item.image
           ? '<img class="card-thumb-img" src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.name) + '" loading="lazy" onerror="this.remove()">'
-          : '')
-        + '<div class="card-thumb-pattern ' + thumbCfg.pattern + '"></div>'
-        + '<span class="card-thumb-icon">' + thumbCfg.icon + '</span>'
+          : '<div class="card-thumb-pattern ' + thumbCfg.pattern + '"></div>'
+            + '<span class="card-thumb-icon">' + thumbCfg.icon + '</span>')
         + '</div>'
         + '<div class="card-body">'
         + '<div class="card-title">'
