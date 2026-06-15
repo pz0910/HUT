@@ -8,6 +8,15 @@
       "tags": ["retouch", "AI修图", "图像编辑", "调研报告", "学术"],
       "image": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&h=450&fit=crop",
       "uploaded_at": "2026-06-10T00:00:00Z"
+    },
+    {
+      "name": "AI 视觉论文深度解读 — HDR成像 & VLM图像恢复",
+      "filename": "agent-paper-spotlight.html",
+      "description": "两篇前沿论文深度解读：HDRAgent（首个HDR智能体框架，arXiv 2606.09110）与 Beyond Sequential Tools（CVPR 2026，VLM Agent统一图像恢复系统，K-V Only LoRA + DPO权重分配）",
+      "category": "论文",
+      "tags": ["HDR", "VLM", "Agent", "图像恢复", "CVPR2026", "LoRA", "DPO", "深度解读"],
+      "image": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&h=450&fit=crop",
+      "uploaded_at": "2026-06-16T00:00:00Z"
     }
   ]
 }
