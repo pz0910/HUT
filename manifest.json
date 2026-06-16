@@ -5,7 +5,13 @@
       "filename": "retouch-agent-research.html",
       "description": "AI 图像修图/增强/编辑智能体学术与商业落地现状调研，覆盖 RetouchIQ、Agent Banana、PerTouch、InstantRetouch、MonetGPT 等核心论文与技术路线",
       "category": "论文",
-      "tags": ["retouch", "AI修图", "图像编辑", "调研报告", "学术"],
+      "tags": [
+        "retouch",
+        "AI修图",
+        "图像编辑",
+        "调研报告",
+        "学术"
+      ],
       "image": "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&h=450&fit=crop",
       "uploaded_at": "2026-06-10T00:00:00Z"
     },
@@ -14,8 +20,34 @@
       "filename": "agent-paper-spotlight.html",
       "description": "两篇前沿论文深度解读：HDRAgent（首个HDR智能体框架，arXiv 2606.09110）与 Beyond Sequential Tools（CVPR 2026，VLM Agent统一图像恢复系统，K-V Only LoRA + DPO权重分配）",
       "category": "论文",
-      "tags": ["HDR", "VLM", "Agent", "图像恢复", "CVPR2026", "LoRA", "DPO", "深度解读"],
+      "tags": [
+        "HDR",
+        "VLM",
+        "Agent",
+        "图像恢复",
+        "CVPR2026",
+        "LoRA",
+        "DPO",
+        "深度解读"
+      ],
       "image": "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=800&h=450&fit=crop",
+      "uploaded_at": "2026-06-16T00:00:00Z"
+    },
+    {
+      "name": "图像编辑论文深度解读 — RL多智能体 & 12M数据集",
+      "filename": "apps/image-edit-papers.html",
+      "description": "两篇前沿图像编辑论文深度解读：ImageEdit-R1（arXiv 2603.08059，GRPO强化学习驱动的三智能体协作框架，8.85分超越GPT-4o）与 ScaleEdit-12M（arXiv 2603.20644，最大开源图像编辑数据集1240万样本，成本仅$250K）",
+      "category": "论文",
+      "tags": [
+        "图像编辑",
+        "强化学习",
+        "多智能体",
+        "数据集",
+        "GRPO",
+        "ScaleEdit",
+        "深度解读"
+      ],
+      "image": "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=450&fit=crop",
       "uploaded_at": "2026-06-16T00:00:00Z"
     }
   ]
