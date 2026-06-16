@@ -35,7 +35,7 @@
     },
     {
       "name": "图像编辑论文深度解读 — RL多智能体 & 12M数据集",
-      "filename": "apps/image-edit-papers.html",
+      "filename": "image-edit-papers.html",
       "description": "两篇前沿图像编辑论文深度解读：ImageEdit-R1（arXiv 2603.08059，GRPO强化学习驱动的三智能体协作框架，8.85分超越GPT-4o）与 ScaleEdit-12M（arXiv 2603.20644，最大开源图像编辑数据集1240万样本，成本仅$250K）",
       "category": "论文",
       "tags": [
