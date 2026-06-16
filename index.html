@@ -634,7 +634,7 @@
   }
 
   // 加载数据
-  fetch('manifest.json')
+  fetch('manifest.json?' + Date.now())
     .then(r => {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
