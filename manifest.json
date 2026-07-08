@@ -49,6 +49,23 @@
       ],
       "image": "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&h=450&fit=crop",
       "uploaded_at": "2026-06-16T00:00:00Z"
+    },
+    {
+      "name": "智能蒙版论文调研 — 全景分割/实例分割/实例Matting",
+      "filename": "smart-mask-papers.html",
+      "description": "智能蒙版功能技术参考：全景分割、实例分割、实例Matting三个领域各20篇SOTA论文汇总，含数据集、GitHub仓库、推荐实现方案（SAM2）",
+      "category": "论文",
+      "tags": [
+        "分割",
+        "matting",
+        "SAM2",
+        "全景分割",
+        "实例分割",
+        "SOTA",
+        "调研报告"
+      ],
+      "image": "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800&h=450&fit=crop",
+      "uploaded_at": "2026-07-08T00:00:00Z"
     }
   ]
 }
